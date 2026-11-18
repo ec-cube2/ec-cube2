@@ -1,5 +1,42 @@
 {
+    "name": "ec-cube2/ec-cube2",
+    "description": "EC-CUBE",
+    "homepage": "https://www.ec-cube.net/",
+    "type": "project",
+    "license": [
+        "GPL-2.0",
+        "proprietary"
+    ],
+    "support": {
+        "issues": "https://github.com/EC-CUBE/ec-cube2/issues",
+        "source": "https://github.com/EC-CUBE/ec-cube2"
+    },
+    "require": {
+        "php": "^5.2",
+        "ext-ctype": "*",
+        "ext-gd": "*",
+        "ext-mbstring": "*",
+        "ext-session": "*",
+        "ext-zlib": "*"
+    },
     "require-dev": {
         "phpunit/phpunit": "^4.8"
-    }
+    },
+    "suggest": {
+        "ext-curl": "",
+        "ext-hash": "",
+        "ext-json": "",
+        "ext-mcrypt": "",
+        "ext-mysql": "",
+        "ext-openssl": "",
+        "ext-pgsql": "",
+        "ext-xml": "",
+        "ext-zip": ""
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "include-path": [
+        "data/module/"
+    ]
 }
