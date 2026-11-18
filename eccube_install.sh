@@ -53,15 +53,15 @@ case "${DBTYPE}" in
     PGUSER=postgres
     DROPDB=dropdb
     CREATEDB=createdb
-    DBPORT=5432
+    DBPORT=${DBPORT:-5432}
+    export PGPASSWORD=${PGPASSWORD-$DBPASS}
 ;;
 "mysql" )
     #-- DB Seting MySQL
     MYSQL=mysql
     ROOTUSER=root
     ROOTPASS=$DBPASS
-    DBSERVER="127.0.0.1"
-    DBPORT=3306
+    DBPORT=${DBPORT:-3306}
 ;;
 * ) echo "ERROR:: argument is invaid"
 exit
@@ -150,10 +150,10 @@ dtb_tax_rule_tax_rule_id_seq
 
     case ${DBTYPE} in
         pgsql)
-            echo ${comb_sql} | sudo -u ${PGUSER} ${PSQL} -U ${DBUSER} ${DBNAME}
+            echo ${comb_sql} | ${PSQL} -h ${DBSERVER} -p ${DBPORT} -U ${DBUSER} ${DBNAME}
         ;;
         mysql)
-            echo ${comb_sql} | ${MYSQL} -u ${DBUSER} ${PASSOPT} ${DBNAME}
+            echo ${comb_sql} | ${MYSQL} -h ${DBSERVER} -P ${DBPORT} -u ${DBUSER} ${PASSOPT} ${DBNAME}
         ;;
     esac
 }
@@ -208,17 +208,17 @@ case "${DBTYPE}" in
 "pgsql" )
     # PostgreSQL
     echo "dropdb..."
-    sudo -u ${PGUSER} ${DROPDB} ${DBNAME}
+    ${DROPDB} -h ${DBSERVER} -p ${DBPORT} -U ${DBUSER} ${DBNAME}
     echo "createdb..."
-    sudo -u ${PGUSER} ${CREATEDB} -U ${DBUSER} ${DBNAME}
+    ${CREATEDB} -h ${DBSERVER} -p ${DBPORT} -U ${DBUSER} ${DBNAME}
     echo "create table..."
-    sudo -u ${PGUSER} ${PSQL} -U ${DBUSER} -f ${SQL_DIR}/create_table_pgsql.sql ${DBNAME}
+    ${PSQL} -h ${DBSERVER} -p ${DBPORT} -U ${DBUSER} -f ${SQL_DIR}/create_table_pgsql.sql ${DBNAME}
     echo "insert data..."
-    sudo -u ${PGUSER} ${PSQL} -U ${DBUSER} -f ${SQL_DIR}/insert_data.sql ${DBNAME}
+    ${PSQL} -h ${DBSERVER} -p ${DBPORT} -U ${DBUSER} -f ${SQL_DIR}/insert_data.sql ${DBNAME}
     echo "create sequence table..."
     create_sequence_tables
     echo "execute optional SQL..."
-    get_optional_sql | sudo -u ${PGUSER} ${PSQL} -U ${DBUSER} ${DBNAME}
+    get_optional_sql | ${PSQL} -h ${DBSERVER} -p ${DBPORT} -U ${DBUSER} ${DBNAME}
 ;;
 "mysql" )
     DBPASS=`echo $DBPASS | tr -d " "`
@@ -228,21 +228,21 @@ case "${DBTYPE}" in
     fi
     # MySQL
     echo "dropdb..."
-    ${MYSQL} -u ${ROOTUSER} ${PASSOPT} -e "drop database \`${DBNAME}\`"
+    ${MYSQL} -h ${DBSERVER} -P ${DBPORT} -u ${ROOTUSER} ${PASSOPT} -e "drop database \`${DBNAME}\`"
     echo "createdb..."
-    ${MYSQL} -u ${ROOTUSER} ${PASSOPT} -e "create database \`${DBNAME}\`"
+    ${MYSQL} -h ${DBSERVER} -P ${DBPORT} -u ${ROOTUSER} ${PASSOPT} -e "create database \`${DBNAME}\` DEFAULT COLLATE=utf8_general_ci"
     #echo "grant user..."
-    #${MYSQL} -u ${ROOTUSER} ${PASSOPT} -e "GRANT ALL ON \`${DBNAME}\`.* TO '${DBUSER}'@'%' IDENTIFIED BY '${DBPASS}'"
+    #${MYSQL} -h ${DBSERVER} -P ${DBPORT} -u ${ROOTUSER} ${PASSOPT} -e "GRANT ALL ON \`${DBNAME}\`.* TO '${DBUSER}'@'%' IDENTIFIED BY '${DBPASS}'"
     echo "create table..."
-    echo "SET SESSION storage_engine = InnoDB;" |
+    echo "SET SESSION default_storage_engine = InnoDB;" |
         cat - ${SQL_DIR}/create_table_mysql.sql |
-        ${MYSQL} -u ${DBUSER} ${PASSOPT} ${DBNAME}
+        ${MYSQL} -h ${DBSERVER} -P ${DBPORT} -u ${DBUSER} ${PASSOPT} ${DBNAME}
     echo "insert data..."
-    ${MYSQL} -u ${DBUSER} ${PASSOPT} ${DBNAME} < ${SQL_DIR}/insert_data.sql
+    ${MYSQL} -h ${DBSERVER} -P ${DBPORT} -u ${DBUSER} --default-character-set=utf8 ${PASSOPT} ${DBNAME} < ${SQL_DIR}/insert_data.sql
     echo "create sequence table..."
     create_sequence_tables
     echo "execute optional SQL..."
-    get_optional_sql | ${MYSQL} -u ${DBUSER} ${PASSOPT} ${DBNAME}
+    get_optional_sql | ${MYSQL} -h ${DBSERVER} -P ${DBPORT} -u ${DBUSER} ${PASSOPT} ${DBNAME}
 ;;
 esac
 
